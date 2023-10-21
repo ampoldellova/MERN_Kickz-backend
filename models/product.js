@@ -70,10 +70,6 @@ const productSchema = new mongoose.Schema({
         maxLength: [5, 'Product stock cannot exceed 5 characters'],
         default: 0
     },
-    numOfReviews: {
-        type: Number,
-        default: 0
-    },
     reviews: [
         {
             // user: {
