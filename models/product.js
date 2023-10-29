@@ -39,6 +39,10 @@ const productSchema = new mongoose.Schema({
         maxLength: [2, 'Shoe size cannot exceed 2 characters'],
         default: 0.0
     },
+    colorway: {
+        type: String,
+        required: [true, 'Please enter product colorway'],
+    },
     brand: {
         type: String,
         required: [true, 'Please select category for this product'],
