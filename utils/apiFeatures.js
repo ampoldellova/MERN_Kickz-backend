@@ -24,7 +24,7 @@ class APIFeatures {
         
         let queryStr = JSON.stringify(queryCopy);
         console.log(queryStr);
-        queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, match => `$${match}`)
+        queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, match => `₱${match}`)
         this.query = this.query.find(JSON.parse(queryStr));
         console.log(JSON.parse(queryStr));
         return this;
