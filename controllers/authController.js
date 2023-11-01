@@ -5,6 +5,11 @@ const cloudinary = require('cloudinary')
 const crypto = require('crypto')
 
 exports.registerUser = async (req, res, next) => {
+
+    if (req.file){
+        req.body.avatar = req.file.path
+    }
+
     const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
         folder: 'Kickz/avatars',
         width: 150,
@@ -86,7 +91,7 @@ exports.forgotPassword = async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: 'ShopIT Password Recovery',
+            subject: 'Kickz Password Recovery',
             message
         })
 
