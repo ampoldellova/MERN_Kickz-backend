@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 exports.registerUser = async (req, res, next) => {
 
-    if (req.file){
+    if (req.file) {
         req.body.avatar = req.file.path
     }
 
@@ -142,4 +142,16 @@ exports.getUserProfile = async (req, res, next) => {
         success: true,
         user
     })
+}
+
+exports.updatePassword = async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('password');
+    const isMatched = await user.comparePassword(req.body.oldPassword)
+    if (!isMatched) {
+        return res.status(400).json({ message: 'Old password is incorrect' })
+    }
+    user.password = req.body.password;
+    await user.save();
+    sendToken(user, 200, res)
+
 }
