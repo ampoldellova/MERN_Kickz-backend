@@ -10,11 +10,11 @@ exports.newProduct = async (req, res, next) => {
 	})
 }
 
-exports.getProducts = async (req,res,next) => {
-	
+exports.getProducts = async (req, res, next) => {
+
 	const resPerPage = 4;
 	const productsCount = await Product.countDocuments();
-	const apiFeatures = new APIFeatures(Product.find(),req.query).search().filter(); 
+	const apiFeatures = new APIFeatures(Product.find(), req.query).search().filter();
 
 	apiFeatures.pagination(resPerPage);
 	const products = await apiFeatures.query;
@@ -79,4 +79,15 @@ exports.deleteProduct = async (req, res, next) => {
 		success: true,
 		message: 'Product deleted'
 	})
+}
+
+exports.getAdminProducts = async (req, res, next) => {
+
+	const products = await Product.find();
+
+	res.status(200).json({
+		success: true,
+		products
+	})
+
 }
