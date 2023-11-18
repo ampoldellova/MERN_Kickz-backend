@@ -45,15 +45,7 @@ const productSchema = new mongoose.Schema({
     },
     brand: {
         type: String,
-        required: [true, 'Please select category for this product'],
-        enum: {
-            values: [
-                'Adidas',
-                'Nike',
-                'Vans'
-            ],
-            message: 'Please select correct brand for the product'
-        }
+        required: [true, 'Please enter a brand for this product'],
     },
     type: {
         type: String,
