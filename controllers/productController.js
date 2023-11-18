@@ -66,7 +66,7 @@ exports.updateProduct = async (req, res, next) => {
 	let imagesLinks = [];
 	for (let i = 0; i < images.length; i++) {
 		const result = await cloudinary.v2.uploader.upload(images[i], {
-			folder: 'products'
+			folder: 'Kickz/products'
 		});
 		imagesLinks.push({
 			public_id: result.public_id,
