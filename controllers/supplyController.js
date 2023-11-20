@@ -50,3 +50,13 @@ exports.newSupplier = async (req, res, next) => {
 		supplier
 	})
 }
+
+exports.getSupplier = async (req, res, next) => {
+
+	const supplier = await Supplier.find();
+
+	res.status(200).json({
+		success: true,
+		supplier
+	})
+}
