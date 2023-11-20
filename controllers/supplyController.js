@@ -60,3 +60,17 @@ exports.getSupplier = async (req, res, next) => {
 		supplier
 	})
 }
+
+exports.getSingleSupplier = async (req, res, next) => {
+	const supplier = await Supplier.findById(req.params.id);
+	if (!supplier) {
+		return res.status(404).json({
+			success: false,
+			message: 'Supplier not found'
+		})
+	}
+	res.status(200).json({
+		success: true,
+		supplier
+	})
+}
