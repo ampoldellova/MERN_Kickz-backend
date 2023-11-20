@@ -8,7 +8,7 @@ exports.newSupplier = async (req, res, next) => {
 	if (typeof req.body.images === 'string') {
 		images.push(req.body.images)
 	} else {
-		images = req.body.images.flat()
+		images = req.body.images
 	}
 
 	let imagesLinks = [];
