@@ -75,7 +75,7 @@ exports.getSingleBrand = async (req, res, next) => {
 }
 
 exports.updateBrand = async (req, res, next) => {
-	let brand = await brand.findById(req.params.id);
+	let brand = await Brand.findById(req.params.id);
 	console.log(req.body)
 	if (!brand) {
 		return res.status(404).json({
@@ -111,7 +111,7 @@ exports.updateBrand = async (req, res, next) => {
 		req.body.images = imagesLinks
 	}
 
-	brand = await brand.findByIdAndUpdate(req.params.id, req.body, {
+	brand = await Brand.findByIdAndUpdate(req.params.id, req.body, {
 		new: true,
 		runValidators: true,
 		useFindandModify: false
