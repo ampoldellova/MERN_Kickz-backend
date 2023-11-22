@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../utils/multer')
 
-const { newBrand, getBrand, updateBrand, deleteBrand, getSingleBrand } = require('../controllers/supplyController');
+const { newBrand, getBrand, updateBrand, deleteBrand, getSingleBrand } = require('../controllers/brandController');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 router.get('/admin/brand/:id', getSingleBrand);

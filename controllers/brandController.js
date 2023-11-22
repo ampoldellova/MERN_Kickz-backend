@@ -52,7 +52,7 @@ exports.newBrand = async (req, res, next) => {
 
 exports.getBrand = async (req, res, next) => {
 
-	const brand = await brand.find();
+	const brand = await Brand.find();
 
 	res.status(200).json({
 		success: true,
@@ -61,7 +61,7 @@ exports.getBrand = async (req, res, next) => {
 }
 
 exports.getSingleBrand = async (req, res, next) => {
-	const brand = await brand.findById(req.params.id);
+	const brand = await Brand.findById(req.params.id);
 	if (!brand) {
 		return res.status(404).json({
 			success: false,
@@ -124,7 +124,7 @@ exports.updateBrand = async (req, res, next) => {
 }
 
 exports.deleteBrand = async (req, res, next) => {
-	const brand = await brand.findByIdAndDelete(req.params.id);
+	const brand = await Brand.findByIdAndDelete(req.params.id);
 	if (!brand) {
 		return res.status(404).json({
 			success: false,
