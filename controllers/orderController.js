@@ -1,7 +1,9 @@
 const Order = require('../models/order');
 const Product = require('../models/product');
+const sendEmail = require('../utils/sendEmail');
 
 exports.newOrder = async (req, res, next) => {
+
     const {
         orderItems,
         shippingInfo,
@@ -25,9 +27,18 @@ exports.newOrder = async (req, res, next) => {
         user: req.user._id
     })
 
+    const message = `There is a new order`
+
+    await sendEmail({
+        email: 'kickz@gmail.com',
+        subject: 'Kickz',
+        message
+    })
+
     res.status(200).json({
         success: true,
-        order
+        order,
+        message: `Email sent to: kickz@gmail.com`
     })
 }
 
