@@ -44,8 +44,8 @@ const productSchema = new mongoose.Schema({
         required: [true, 'Please enter product colorway'],
     },
     brand: {
-        type: String,
-        required: [true, 'Please enter a brand for this product'],
+        type: mongoose.Schema.Types.ObjectId,
+        required: [true, 'Please select a brand for this product'],
     },
     type: {
         type: String,

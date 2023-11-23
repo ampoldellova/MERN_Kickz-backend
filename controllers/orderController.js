@@ -27,12 +27,56 @@ exports.newOrder = async (req, res, next) => {
         user: req.user._id
     })
 
-    const message = `There is a new order from ${req.user.name}`;
+    const itemsList = orderItems.map(item => `
+    <tr>
+        <td><img src="${item.image}" style="width:100px; height:100px;"/></td>
+        <td>${item.name}</td>
+        <td>${item.quantity}</td>
+        <td>₱ ${item.price}</td>
+        <td>₱ ${item.quantity * item.price}</td>   
+    </tr>  
+    `).join('');
+
+    const confirmationLink = `<a href="http://localhost:4002/confirm-order?orderId=${order._id}&userEmail=${req.user.email}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none;">Confirm Order</a>`;
+
+    const message = `
+    <html>
+    <style>
+        table, th, td {
+            border:1px solid black;
+        }
+        td{
+            text-align: center;
+        }
+    </style>
+    <body>  
+        There is a new order from ${req.user.name}
+        <p>Order Details:</p>
+        <table style="width:100%">
+            <tr>
+                <th>Image</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+            ${itemsList}
+        </table>
+        <p>Shipping Information: ${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.country}, ${shippingInfo.postalCode}</p>
+        <p>Phone Number: ${shippingInfo.phoneNo}</p>
+        <p>Items Price: ₱ ${itemsPrice}</p>
+        <p>Tax Price: ₱ ${taxPrice}</p>
+        <p>Shipping Price: ₱ ${shippingPrice}</p>
+        <p>Total Price: ₱ ${totalPrice}</p>
+        ${confirmationLink}
+    </body>
+    </html> 
+    `;
 
 
     await sendEmail({
         email: 'kickz@gmail.com',
-        subject: 'Kickz',
+        subject: 'New Order Notification',
         message
     })
 
@@ -42,6 +86,80 @@ exports.newOrder = async (req, res, next) => {
         message: `Email sent to: kickz@gmail.com`
     })
 }
+
+exports.confirmOrder = async (req, res, next) => {
+    const { orderId, userEmail } = req.body;
+
+    try {
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        const itemsList = order.orderItems.map(item => `
+        <tr>
+            <td><img src="${item.image}" style="width:100px; height:100px;"/></td>
+            <td>${item.name}</td>
+            <td>${item.quantity}</td>
+            <td>₱ ${item.price}</td>
+            <td>₱ ${item.quantity * item.price}</td>   
+        </tr>  
+        `).join('');
+
+        const message = `
+        <html>
+        <style>
+            table, th, td {
+                border:1px solid black;
+            }
+            td{
+                text-align: center;
+            }
+        </style>
+        <body>  
+            Your order has been confirmed. Thank you for shopping with us!
+            <p>Order Details:</p>
+            <table style="width:100%">
+                <tr>
+                    <th>Image</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+                ${itemsList}
+            </table>
+            <p>Shipping Information: ${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.country}, ${order.shippingInfo.postalCode}</p>
+            <p>Phone Number: ${order.shippingInfo.phoneNo}</p>
+            <p>Items Price: ₱ ${order.itemsPrice}</p>
+            <p>Tax Price: ₱ ${order.taxPrice}</p>
+            <p>Shipping Price: ₱ ${order.shippingPrice}</p>
+            <p>Total Price: ₱ ${order.totalPrice}</p>
+        </body>
+        </html>`;
+
+        await sendEmail({
+            email: userEmail,
+            subject: 'Order Confirmation',
+            message
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Order confirmation email sent to: ${userEmail}`
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+};
 
 exports.getSingleOrder = async (req, res, next) => {
     const order = await Order.findById(req.params.id).populate('user', 'name email')
