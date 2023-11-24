@@ -2,6 +2,7 @@ const Product = require('../models/product');
 const Order = require('../models/order')
 const APIFeatures = require('../utils/apiFeatures');
 const cloudinary = require('cloudinary')
+const Brand = require('../models/brand');
 
 exports.newProduct = async (req, res, next) => {
 
@@ -71,7 +72,11 @@ exports.getProducts = async (req, res, next) => {
 }
 
 exports.getSingleProduct = async (req, res, next) => {
-	const product = await Product.findById(req.params.id);
+	const product = await Product.findById(req.params.id).populate({
+		path: 'brand',
+		model: Brand
+	});
+	console.log(product)
 	if (!product) {
 		return res.status(404).json({
 			success: false,
@@ -161,59 +166,55 @@ exports.getAdminProducts = async (req, res, next) => {
 }
 
 exports.productSales = async (req, res, next) => {
-	const totalSales = await Order.aggregate([
-		{
-			$group: {
-				_id: null,
-				total: { $sum: "$itemsPrice" }
-
+	try {
+		// Calculate total sales
+		const totalSales = await Order.aggregate([
+			{
+				$group: {
+					_id: null,
+					total: { $sum: "$itemsPrice" }
+				},
 			},
+		]);
 
-		},
-	])
-	console.log(totalSales)
-	const sales = await Order.aggregate([
-		{ $project: { _id: 0, "orderItems": 1, totalPrice: 1 } },
-		{ $unwind: "$orderItems" },
-		{
-			$group: {
-				_id: { product: "$orderItems.name" },
-				total: { $sum: { $multiply: ["$orderItems.price", "$orderItems.quantity"] } }
+		// Calculate product-wise sales
+		const sales = await Order.aggregate([
+			{ $project: { _id: 0, "orderItems": 1, totalPrice: 1 } },
+			{ $unwind: "$orderItems" },
+			{
+				$group: {
+					_id: { product: "$orderItems.name" },
+					total: { $sum: { $multiply: ["$orderItems.price", "$orderItems.quantity"] } }
+				},
 			},
-		},
-	])
-	console.log("sales", sales)
+			{ $sort: { total: -1 } }, // Sort by total sales in descending order
+			{ $limit: 5 }, // Limit the result to the top 5 products
+		]);
 
-	if (!totalSales) {
-		return res.status(404).json({
-			message: 'error sales'
-		})
-
-	}
-	if (!sales) {
-		return res.status(404).json({
-			message: 'error sales'
-		})
-
-	}
-
-	let totalPercentage = {}
-	totalPercentage = sales.map(item => {
-
-		// console.log( ((item.total/totalSales[0].total) * 100).toFixed(2))
-		percent = Number(((item.total / totalSales[0].total) * 100).toFixed(2))
-		total = {
-			name: item._id.product,
-			percent
+		if (!totalSales || totalSales.length === 0 || !totalSales[0].total || !sales) {
+			return res.status(404).json({
+				message: 'Error calculating sales',
+			});
 		}
-		return total
-	})
-	// return console.log(totalPercentage)
-	res.status(200).json({
-		success: true,
-		totalPercentage,
-		sales,
-		totalSales
-	})
 
-}
+		const totalPercentage = sales.map(item => {
+			const percent = Number(((item.total / totalSales[0].total) * 100).toFixed(2));
+			return {
+				name: item._id.product,
+				percent,
+			};
+		});
+
+		res.status(200).json({
+			success: true,
+			totalPercentage,
+			sales,
+			totalSales,
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({
+			message: 'Internal server error',
+		});
+	}
+};

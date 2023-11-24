@@ -37,7 +37,7 @@ exports.newOrder = async (req, res, next) => {
     </tr>  
     `).join('');
 
-    const confirmationLink = `<a href="http://localhost:4002/confirm-order?orderId=${order._id}&userEmail=${req.user.email}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none;">Confirm Order</a>`;
+    const confirmationLink = `<a href="http://localhost:4002/api/v1/confirm-order?orderId=${order._id}&userEmail=${req.user.email}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none;">Confirm Order</a>`;
 
     const message = `
     <html>
@@ -88,7 +88,7 @@ exports.newOrder = async (req, res, next) => {
 }
 
 exports.confirmOrder = async (req, res, next) => {
-    const { orderId, userEmail } = req.body;
+    const { orderId, userEmail } = req.query;
 
     try {
         const order = await Order.findById(orderId);
@@ -144,7 +144,7 @@ exports.confirmOrder = async (req, res, next) => {
 
         await sendEmail({
             email: userEmail,
-            subject: 'Order Confirmation',
+            subject: 'Your Order has been Confirmed',
             message
         });
 
@@ -262,7 +262,7 @@ exports.customerSales = async (req, res, next) => {
         },
 
         { $sort: { total: -1 } },
-
+        { $limit: 5 }
     ])
     console.log(customerSales)
     if (!customerSales) {
