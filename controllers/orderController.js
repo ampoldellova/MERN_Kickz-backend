@@ -89,80 +89,6 @@ exports.newOrder = async (req, res, next) => {
     })
 }
 
-// exports.confirmOrder = async (req, res, next) => {
-//     const { orderId, userEmail } = req.query;
-
-//     try {
-//         const order = await Order.findById(orderId);
-
-//         if (!order) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Order not found'
-//             });
-//         }
-
-//         const itemsList = order.orderItems.map(item => `
-//         <tr>
-//             <td><img src="${item.image}" style="width:100px; height:100px;"/></td>
-//             <td>${item.name}</td>
-//             <td>${item.quantity}</td>
-//             <td>₱ ${item.price}</td>
-//             <td>₱ ${item.quantity * item.price}</td>   
-//         </tr>  
-//         `).join('');
-
-//         const message = `
-//         <html>
-//         <style>
-//             table, th, td {
-//                 border:1px solid black;
-//             }
-//             td{
-//                 text-align: center;
-//             }
-//         </style>
-//         <body>  
-//             Your order has been confirmed. Thank you for shopping with us!
-//             <p>Order Details:</p>
-//             <table style="width:100%">
-//                 <tr>
-//                     <th>Image</th>
-//                     <th>Item Name</th>
-//                     <th>Quantity</th>
-//                     <th>Price</th>
-//                     <th>Total</th>
-//                 </tr>
-//                 ${itemsList}
-//             </table>
-//             <p>Shipping Information: ${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.country}, ${order.shippingInfo.postalCode}</p>
-//             <p>Phone Number: ${order.shippingInfo.phoneNo}</p>
-//             <p>Items Price: ₱ ${order.itemsPrice}</p>
-//             <p>Tax Price: ₱ ${order.taxPrice}</p>
-//             <p>Shipping Price: ₱ ${order.shippingPrice}</p>
-//             <p>Total Price: ₱ ${order.totalPrice}</p>
-//         </body>
-//         </html>`;
-
-//         await sendEmail({
-//             email: userEmail,
-//             subject: 'Your Order has been Confirmed',
-//             message
-//         });
-
-//         res.status(200).json({
-//             success: true,
-//             message: `Order confirmation email sent to: ${userEmail}`
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Internal Server Error'
-//         });
-//     }
-// };
-
 exports.confirmOrder = async (req, res, next) => {
     const { orderId, userEmail } = req.query;
 
@@ -179,21 +105,23 @@ exports.confirmOrder = async (req, res, next) => {
         const message = `<p>Your order has been confirmed!</p>
         <p>Click the attachment below, for your receipt</p>`;
 
-        // Create a PDF document
         const pdfDoc = new PDFDocument();
         const pdfFilePath = `./order_confirmation_${orderId}.pdf`;
         const pdfStream = fs.createWriteStream(pdfFilePath);
 
         const itemsList = order.orderItems.map(item => `
-            pdfDoc.text(${item.name})
-            pdfDoc.text(${item.quantity})
-            pdfDoc.text(${item.price})
-            pdfDoc.text(${item.quantity * item.price})
+        Item Name: ${item.name}
+        Quantity: ${item.quantity}
+        Price: Php.${item.price}
+        Total Price: Php.${item.quantity * item.price}
         `).join('');
 
         pdfDoc.pipe(pdfStream);
 
+        pdfDoc.text('KICKZ', { align: 'center' }).font('Courier');
+        pdfDoc.moveDown();
         pdfDoc.text('Your order has been confirmed. Thank you for shopping with us!');
+        pdfDoc.moveDown();
         pdfDoc.text('Order Details:');
         pdfDoc.text(`${itemsList}`);
         pdfDoc.text(`Shipping Information: ${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.country}, ${order.shippingInfo.postalCode}`);
