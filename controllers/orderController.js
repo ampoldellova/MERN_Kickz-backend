@@ -103,7 +103,7 @@ exports.confirmOrder = async (req, res, next) => {
         }
 
         const message = `<p>Your order has been confirmed!</p>
-        <p>Click the attachment below, for your receipt</p>`;
+        <p>This is your receipt</p>`;
 
         const pdfDoc = new PDFDocument();
         const pdfFilePath = `./order_confirmation_${orderId}.pdf`;
@@ -117,16 +117,15 @@ exports.confirmOrder = async (req, res, next) => {
         `).join('');
 
         pdfDoc.pipe(pdfStream);
-
-        pdfDoc.text('KICKZ', { align: 'center' }).font('Courier');
+        pdfDoc.font('Courier');
+        pdfDoc.text('KICKZ', { align: 'center' });
+        pdfDoc.text('----------------------------------------------------------------', { align: 'center' });
         pdfDoc.moveDown();
         pdfDoc.text('Your order has been confirmed. Thank you for shopping with us!');
         pdfDoc.moveDown();
         pdfDoc.text('Order Details:');
         pdfDoc.text(`${itemsList}`);
-        pdfDoc.text(`Shipping Information: ${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.country}, ${order.shippingInfo.postalCode}`);
-        pdfDoc.text(`Phone Number: ${order.shippingInfo.phoneNo}`);
-        pdfDoc.text(`Items Price: Php.${order.itemsPrice}`);
+        pdfDoc.text('----------------------------------------------------------------', { align: 'center' });
         pdfDoc.text(`Tax Price:  Php.${order.taxPrice}`);
         pdfDoc.text(`Shipping Price: Php.${order.shippingPrice}`);
         pdfDoc.text(`Total Price:  Php.${order.totalPrice}`);
