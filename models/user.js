@@ -25,13 +25,25 @@ const userSchema = new mongoose.Schema({
     avatar: {
         public_id: {
             type: String,
-            required: true
+            default: 'Kickz/coverPhotos/user_llkj2y'
         },
         url: {
             type: String,
-            required: true
+            default: 'https://res.cloudinary.com/dwkmutbz3/image/upload/v1701062410/Kickz/coverPhotos/user_llkj2y.jpg'
         }
     },
+    images: [
+        {
+            public_id: {
+                type: String,
+                default: 'Kickz/coverPhotos/solid-grey-ew5fya1gh2bgc49b_txrgxi'
+            },
+            url: {
+                type: String,
+                default: 'https://res.cloudinary.com/dwkmutbz3/image/upload/v1701061508/Kickz/coverPhotos/solid-grey-ew5fya1gh2bgc49b_txrgxi.jpg'
+            },
+        }
+    ],
     role: {
         type: String,
         default: 'user'

@@ -5,27 +5,62 @@ const cloudinary = require('cloudinary')
 const crypto = require('crypto')
 
 exports.registerUser = async (req, res, next) => {
+    console.log(req.file)
+    console.log(req.files)
+    console.log(req.body)
+    if (req.body.avatar) {
+        // req.body.avatar = req.file.path
 
-    if (req.file) {
-        req.body.avatar = req.file.path
+        const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
+            folder: 'Kickz/avatars',
+            width: 150,
+            crop: "scale"
+        })
+        req.body.avatar = {
+            public_id: result.public_id,
+            url: result.secure_url
+        }
     }
 
-    const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: 'Kickz/avatars',
-        width: 150,
-        crop: "scale"
-    }, (err, res) => {
-        console.log(err, res);
-    });
+    let images = []
+    if (req.body.images) {
+
+        if (typeof req.body.images === 'string') {
+            images.push(req.body.images)
+        } else {
+            images = req.body.images.flat()
+        }
+
+        let imagesLinks = [];
+        for (let i = 0; i < images.length; i++) {
+            let imageDataUri = images[i]
+
+            try {
+                const result = await cloudinary.v2.uploader.upload(`${imageDataUri}`, {
+                    folder: 'Kickz/coverPhotos',
+                    width: 150,
+                    crop: "scale",
+                });
+
+                imagesLinks.push({
+                    public_id: result.public_id,
+                    url: result.secure_url
+                })
+
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        req.body.images = imagesLinks
+    }
+
     const { name, email, password, role } = req.body;
     const user = await User.create({
         name,
         email,
         password,
-        avatar: {
-            public_id: result.public_id,
-            url: result.secure_url
-        },
+        avatar: req.body.avatar,
+        images: req.body.images
         // role,
     })
 
@@ -157,13 +192,13 @@ exports.updatePassword = async (req, res, next) => {
 }
 
 exports.updateProfile = async (req, res, next) => {
+    const user = await User.findById(req.user.id)
     const newUserData = {
         name: req.body.name,
         email: req.body.email
     }
 
     if (req.body.avatar !== '') {
-        const user = await User.findById(req.user.id)
 
         const image_id = user.avatar.public_id;
         const res = await cloudinary.v2.uploader.destroy(image_id);
@@ -180,11 +215,42 @@ exports.updateProfile = async (req, res, next) => {
         }
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+    if (req.body.images) {
+        let images = []
+        console.log(typeof req.body.images)
+
+        if (typeof req.body.images === 'string') {
+            images.push(req.body.images)
+        } else {
+            images = req.body.images.flat()
+        }
+
+        if (images !== undefined) {
+            for (let i = 0; i < user.images.length; i++) {
+                const result = await cloudinary.v2.uploader.destroy(user.images[i].public_id)
+            }
+        }
+
+        let imagesLinks = [];
+        for (let i = 0; i < images.length; i++) {
+            const result = await cloudinary.v2.uploader.upload(images[i], {
+                folder: 'Kickz/coverPhotos'
+            });
+            imagesLinks.push({
+                public_id: result.public_id,
+                url: result.secure_url
+            })
+
+        }
+        newUserData.images = imagesLinks
+    }
+
+    const userUpdate = await User.findByIdAndUpdate(req.user.id, newUserData, {
         new: true,
         runValidators: true,
     })
-    if (!user) {
+
+    if (!userUpdate) {
         return res.status(401).json({ message: 'User Not Updated' })
     }
 
