@@ -3,6 +3,62 @@ const sendToken = require('../utils/jwtToken');
 const sendEmail = require('../utils/sendEmail');
 const cloudinary = require('cloudinary')
 const crypto = require('crypto')
+const bcrypt = require("bcryptjs");
+
+exports.google = async (req, res, next) => {
+    try {
+        const { email, name, avatar } = req.body;
+
+        const existingUser = await User.findOne({ email });
+
+        let avatarData;
+
+        if (avatar) {
+
+            await cloudinary.v2.uploader.upload(
+                avatar,
+                {
+                    folder: "Kickz/avatars",
+                    width: 200,
+                    crop: "scale",
+                },
+                (err, result) => {
+                    if (err) {
+                        console.error("Error uploading avatar to Cloudinary:", err);
+                        throw err;
+                    }
+                    avatarData = {
+                        public_id: result.public_id,
+                        url: result.url,
+                    };
+                }
+            );
+        }
+
+        if (existingUser) {
+
+            sendToken(existingUser, 200, res);
+        } else {
+
+            const randomPassword = Math.random().toString(36).slice(-8);
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+            const newUser = new User({
+                name,
+                email,
+                password: hashedPassword,
+                avatar: avatarData,
+            });
+
+            await newUser.save();
+
+            sendToken(newUser, 201, res);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
 
 exports.registerUser = async (req, res, next) => {
     console.log(req.file)
